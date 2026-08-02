@@ -1,0 +1,13 @@
+ALTER TYPE public.link_type ADD VALUE IF NOT EXISTS 'messenger';
+ALTER TYPE public.link_type ADD VALUE IF NOT EXISTS 'website';
+ALTER TYPE public.link_type ADD VALUE IF NOT EXISTS 'instagram';
+ALTER TYPE public.link_type ADD VALUE IF NOT EXISTS 'x';
+ALTER TYPE public.link_type ADD VALUE IF NOT EXISTS 'linkedin';
+ALTER TYPE public.link_type ADD VALUE IF NOT EXISTS 'facebook';
+ALTER TYPE public.link_type ADD VALUE IF NOT EXISTS 'tiktok';
+ALTER TYPE public.link_type ADD VALUE IF NOT EXISTS 'youtube';
+ALTER TYPE public.link_type ADD VALUE IF NOT EXISTS 'github';
+ALTER TYPE public.link_type ADD VALUE IF NOT EXISTS 'telegram';
+ALTER TYPE public.link_type ADD VALUE IF NOT EXISTS 'snapchat';
+ALTER TYPE public.link_type ADD VALUE IF NOT EXISTS 'map';
+ALTER TYPE public.link_type ADD VALUE IF NOT EXISTS 'custom';

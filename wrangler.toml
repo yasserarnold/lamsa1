@@ -1,0 +1,18 @@
+name = "lamsa"
+compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat"]
+main = ".output/server/index.mjs"
+
+[assets]
+directory = ".output/public"
+binding = "ASSETS"
+
+# ضع المتغيرات السرية عبر: wrangler secret put <NAME>
+# مثال:
+#   wrangler secret put SUPABASE_URL
+#   wrangler secret put SUPABASE_PUBLISHABLE_KEY
+#   wrangler secret put SUPABASE_SERVICE_ROLE_KEY
+#   wrangler secret put LOVABLE_API_KEY
+
+[vars]
+VITE_PUBLIC_SITE_URL = "https://lamsaeg.lovable.app"
