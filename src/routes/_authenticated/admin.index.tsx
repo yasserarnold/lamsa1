@@ -86,13 +86,13 @@ function AdminOverviewPage() {
               {(overview.data?.recentLeads ?? []).length === 0 && (
                 <p className="text-sm text-muted-foreground">{t("admin.overview.noLeads")}</p>
               )}
-              {(overview.data?.recentLeads ?? []).map((l) => (
+              {(overview.data?.recentLeads ?? []).map((l: { id?: string; name?: string | null; mobile?: string | null; interest?: string | null; created_at?: string | null }) => (
                 <div key={l.id} className="flex items-center justify-between rounded-lg border border-border/60 bg-card/50 p-3">
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium">{l.name}</p>
                     <p className="truncate text-xs text-muted-foreground" dir="ltr">{l.mobile}{l.interest ? ` — ${l.interest}` : ""}</p>
                   </div>
-                  <span className="text-[11px] text-muted-foreground shrink-0">{new Date(l.created_at).toLocaleDateString(locale)}</span>
+                  <span className="text-[11px] text-muted-foreground shrink-0">{l.created_at ? new Date(l.created_at).toLocaleDateString(locale) : "—"}</span>
                 </div>
               ))}
               <div className="pt-2">
@@ -110,7 +110,7 @@ function AdminOverviewPage() {
               {(overview.data?.recentProfiles ?? []).length === 0 && (
                 <p className="text-sm text-muted-foreground">{t("admin.overview.none")}</p>
               )}
-              {(overview.data?.recentProfiles ?? []).map((p) => (
+              {(overview.data?.recentProfiles ?? []).map((p: { id?: string; full_name?: string | null; username?: string | null; is_published?: boolean | null }) => (
                 <div key={p.id} className="flex items-center justify-between rounded-lg border border-border/60 bg-card/50 p-3">
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium">{p.full_name || p.username || "—"}</p>
@@ -139,12 +139,12 @@ function AdminOverviewPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {(overview.data?.recentCards ?? []).map((c) => (
+                  {(overview.data?.recentCards ?? []).map((c: { id?: string; card_uid?: string | null; status?: string | null; profile_id?: string | null; created_at?: string | null }) => (
                     <tr key={c.id} className="border-b border-border/40">
                       <td className="p-2 font-mono text-xs" dir="ltr">{c.card_uid}</td>
                       <td className="p-2"><Badge variant={c.status === "active" ? "default" : "secondary"} className="text-[10px]">{c.status}</Badge></td>
                       <td className="p-2 text-xs">{c.profile_id ? t("admin.common.yes") : t("admin.common.dash")}</td>
-                      <td className="p-2 text-xs text-muted-foreground">{new Date(c.created_at).toLocaleDateString(locale)}</td>
+                      <td className="p-2 text-xs text-muted-foreground">{c.created_at ? new Date(c.created_at).toLocaleDateString(locale) : "—"}</td>
                     </tr>
                   ))}
                   {(overview.data?.recentCards ?? []).length === 0 && (

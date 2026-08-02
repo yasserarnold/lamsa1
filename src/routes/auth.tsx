@@ -53,12 +53,12 @@ function AuthPage() {
 
   // Client-only session check + OAuth hydration fallback
   useEffect(() => {
-    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: sub } = supabase.auth.onAuthStateChange((event: string, session: unknown) => {
       if (event === "SIGNED_IN" && session) {
         navigate({ to: targetRedirect, replace: true });
       }
     });
-    void supabase.auth.getSession().then(({ data }) => {
+    void supabase.auth.getSession().then(({ data }: { data: { session?: unknown } }) => {
       if (data.session) navigate({ to: targetRedirect, replace: true });
       else setCheckingSession(false);
     });

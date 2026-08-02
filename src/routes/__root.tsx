@@ -164,7 +164,7 @@ function RootComponent() {
     installHydrationErrorCapture();
     auditPublicSiteUrl(toast);
     const syncUser = () =>
-      supabase.auth.getUser().then(({ data, error }) => {
+      supabase.auth.getUser().then(({ data, error }: { data: { user?: { id?: string } | null }; error?: { message?: string } | null }) => {
         if (error && /user_not_found|invalid|jwt/i.test(error.message ?? "")) {
           // Stale session pointing to a deleted user — clear it once to stop the 403 loop.
           supabase.auth.signOut().catch(() => {});
@@ -174,7 +174,7 @@ function RootComponent() {
         setReportingUser(data.user?.id ?? null);
       }).catch(() => {});
     syncUser();
-    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+    const { data: sub } = supabase.auth.onAuthStateChange((event: string) => {
       if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
       syncUser();
       router.invalidate();

@@ -125,7 +125,7 @@ export const getSecurityStatus = createServerFn({ method: "GET" })
 
     // 2) Storage buckets all private
     const { data: buckets } = await supabaseAdmin.storage.listBuckets();
-    const publicBuckets = (buckets ?? []).filter((b) => b.public);
+    const publicBuckets = (buckets ?? []).filter((b: { public?: boolean; name?: string }) => b.public);
     checks.push({
       key: "storage",
       label: "جميع خزائن الملفات خاصة (Signed URLs فقط)",
@@ -133,7 +133,7 @@ export const getSecurityStatus = createServerFn({ method: "GET" })
       detail:
         publicBuckets.length === 0
           ? `${(buckets ?? []).length} خزانة خاصة.`
-          : `خزائن عامة: ${publicBuckets.map((b) => b.name).join(", ")}`,
+          : `خزائن عامة: ${publicBuckets.map((b: { name?: string }) => b.name).join(", ")}`,
     });
 
     // 3) profiles_public view exists (moderation columns hidden)

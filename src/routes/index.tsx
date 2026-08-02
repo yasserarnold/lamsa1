@@ -173,9 +173,9 @@ function AuthNav() {
       resolveLabel(session.user.id, fallback, session.user.email ?? null);
     }
 
-    supabase.auth.getSession().then(({ data }) => applySession(data.session));
+    supabase.auth.getSession().then(({ data }: { data: { session: import("@supabase/supabase-js").Session | null } }) => applySession(data.session));
 
-    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: sub } = supabase.auth.onAuthStateChange((event: string, session: import("@supabase/supabase-js").Session | null) => {
       if (!mounted) return;
       if (event === "TOKEN_REFRESHED" && !session) {
         setState({ status: "expired" });

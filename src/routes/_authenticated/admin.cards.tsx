@@ -266,11 +266,11 @@ function AdminCardsPage() {
             {actionsQuery.isPending ? (
               <div className="grid place-items-center py-6"><Loader2 className="size-5 animate-spin" /></div>
             ) : (() => {
-              const scans = (actionsQuery.data ?? []).filter((a) => a.action === "card_scan_import");
+              const scans = (actionsQuery.data ?? []).filter((a: { action?: string | null }) => a.action === "card_scan_import");
               if (scans.length === 0) return <p className="text-sm text-muted-foreground">{t("admin.cards.importLogEmpty")}</p>;
               return (
                 <ul className="space-y-2">
-                  {scans.map((a) => {
+                  {scans.map((a: { id?: string; metadata?: Record<string, unknown> | null; created_at?: string | null }) => {
                     const m = (a.metadata ?? {}) as Record<string, number | boolean>;
                     return (
                       <li key={a.id} className="flex items-center justify-between rounded-lg border border-border/60 bg-card/50 p-3 text-sm">
@@ -288,7 +288,7 @@ function AdminCardsPage() {
                           </p>
                         </div>
                         <span className="text-[11px] text-muted-foreground shrink-0">
-                          {new Date(a.created_at).toLocaleString(locale)}
+                          {a.created_at ? new Date(a.created_at).toLocaleString(locale) : "—"}
                         </span>
                       </li>
                     );

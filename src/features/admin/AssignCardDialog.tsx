@@ -89,7 +89,7 @@ export default function AssignCardDialog({
               <p className="p-3 text-xs text-muted-foreground">{t("admin.assignDialog.noResults")}</p>
             ) : (
               <ul>
-                {results.map((u) => {
+                {results.map((u: { id: string; full_name?: string | null; username?: string | null; email?: string | null }) => {
                   const label = u.full_name || u.username || u.email || u.id;
                   const active = picked?.id === u.id;
                   return (

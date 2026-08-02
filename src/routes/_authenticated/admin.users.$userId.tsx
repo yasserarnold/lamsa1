@@ -195,7 +195,7 @@ function UserDetailPage() {
               <Row icon={Activity} label={t("admin.userDetail.lastSignIn")} value={fmt(auth?.last_sign_in_at ?? null, locale)} />
               <Row icon={CircleCheck} label={t("admin.userDetail.emailConfirmed")} value={fmt(auth?.email_confirmed_at ?? null, locale)} />
               <div className="pt-2 flex flex-wrap gap-1.5">
-                {detail.data.roles.map((r) => (
+                {detail.data.roles.map((r: string) => (
                   <Badge key={r} variant={r === "admin" ? "default" : "outline"} className="text-[10px]">{r}</Badge>
                 ))}
                 {p.is_published ? <Badge className="text-[10px]">{t("admin.userDetail.published")}</Badge> : <Badge variant="secondary" className="text-[10px]">{t("admin.userDetail.draft")}</Badge>}
@@ -240,15 +240,15 @@ function UserDetailPage() {
                 <p className="text-sm text-muted-foreground">{t("admin.userDetail.actionsEmpty")}</p>
               ) : (
                 <ul className="space-y-2">
-                  {detail.data.admin_actions.map((a) => (
+                  {detail.data.admin_actions.map((a: { id?: string; action?: string | null; metadata?: Record<string, unknown> | null; created_at?: string | null }) => (
                     <li key={a.id} className="flex items-center justify-between rounded-lg border border-border/60 bg-card/50 p-3 text-sm">
                       <div>
-                        <p className="font-medium">{actionLabel(a.action, t)}</p>
+                        <p className="font-medium">{actionLabel(a.action ?? "", t)}</p>
                         {a.metadata && Object.keys(a.metadata as object).length > 0 && (
                           <p className="text-xs text-muted-foreground" dir="ltr">{JSON.stringify(a.metadata)}</p>
                         )}
                       </div>
-                      <span className="text-[11px] text-muted-foreground shrink-0">{fmt(a.created_at, locale)}</span>
+                      <span className="text-[11px] text-muted-foreground shrink-0">{fmt(a.created_at ?? null, locale)}</span>
                     </li>
                   ))}
                 </ul>
@@ -268,13 +268,13 @@ function UserDetailPage() {
                 <p className="text-sm text-muted-foreground">{t("admin.userDetail.nfcEmpty")}</p>
               ) : (
                 <ul className="space-y-1.5">
-                  {detail.data.card_events.map((e) => (
+                  {detail.data.card_events.map((e: { id?: string; event_type?: string | null; card_uid?: string | null; created_at?: string | null }) => (
                     <li key={e.id} className="flex items-center justify-between text-xs">
                       <span className="inline-flex items-center gap-2">
                         <Badge variant="outline" className="text-[10px]">{e.event_type}</Badge>
                         <span className="font-mono" dir="ltr">{e.card_uid}</span>
                       </span>
-                      <span className="text-muted-foreground">{fmt(e.created_at, locale)}</span>
+                      <span className="text-muted-foreground">{fmt(e.created_at ?? null, locale)}</span>
                     </li>
                   ))}
                 </ul>
@@ -291,13 +291,13 @@ function UserDetailPage() {
                 <p className="text-sm text-muted-foreground">{t("admin.userDetail.leadsEmpty")}</p>
               ) : (
                 <ul className="space-y-1.5">
-                  {detail.data.leads.map((l) => (
+                  {detail.data.leads.map((l: { id?: string; name?: string | null; mobile?: string | null; interest?: string | null; created_at?: string | null }) => (
                     <li key={l.id} className="flex items-center justify-between text-xs gap-2">
                       <div className="min-w-0">
                         <p className="truncate font-medium text-sm">{l.name}</p>
                         <p className="truncate text-muted-foreground" dir="ltr">{l.mobile}{l.interest ? ` — ${l.interest}` : ""}</p>
                       </div>
-                      <span className="text-muted-foreground shrink-0">{fmt(l.created_at, locale)}</span>
+                      <span className="text-muted-foreground shrink-0">{fmt(l.created_at ?? null, locale)}</span>
                     </li>
                   ))}
                 </ul>
@@ -326,13 +326,13 @@ function UserDetailPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {detail.data.cards.map((c) => (
+                    {detail.data.cards.map((c: { id?: string; card_uid?: string | null; status?: string | null; is_official?: boolean | null; last_written_at?: string | null; activated_at?: string | null }) => (
                       <tr key={c.id} className="border-b border-border/40">
                         <td className="p-2 font-mono text-xs" dir="ltr">{c.card_uid}</td>
                         <td className="p-2"><Badge variant={c.status === "active" ? "default" : "secondary"} className="text-[10px]">{c.status}</Badge></td>
                         <td className="p-2 text-xs">{c.is_official ? t("admin.common.yes") : t("admin.common.dash")}</td>
-                        <td className="p-2 text-xs text-muted-foreground">{fmt(c.last_written_at, locale)}</td>
-                        <td className="p-2 text-xs text-muted-foreground">{fmt(c.activated_at, locale)}</td>
+                        <td className="p-2 text-xs text-muted-foreground">{fmt(c.last_written_at ?? null, locale)}</td>
+                        <td className="p-2 text-xs text-muted-foreground">{fmt(c.activated_at ?? null, locale)}</td>
                       </tr>
                     ))}
                   </tbody>

@@ -5,6 +5,13 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { assertAdmin } from "@/lib/server-guards";
 
 type AnySupabaseClient = any;
+type AdminProfileRow = { id: string; username?: string | null; full_name?: string | null; title?: string | null; is_published?: boolean | null; is_banned?: boolean | null; banned_at?: string | null; ban_reason?: string | null; created_at?: string | null; avatar_url?: string | null; updated_at?: string | null; bio?: string | null; language?: string | null; [key: string]: any };
+type AdminUserRoleRow = { user_id: string; role: string };
+type AdminLeadRow = { id: string; profile_id?: string | null; name?: string | null; mobile?: string | null; interest?: string | null; created_at?: string | null; source_card_uid?: string | null };
+type AdminCardRow = { id: string; profile_id?: string | null; card_uid?: string | null; status?: string | null; is_official?: boolean | null; activated_at?: string | null; last_written_at?: string | null; created_at?: string | null };
+type AdminActionRow = { id: string; actor_id?: string | null; action?: string | null; target_type?: string | null; target_id?: string | null; metadata?: Record<string, any> | null; created_at?: string | null };
+
+type AuthUserSummary = { id: string; email?: string | null; phone?: string | null };
 
 function normalizeUid(raw: string) {
   return raw.replace(/[^0-9A-Fa-f]/g, "").toUpperCase();
@@ -229,9 +236,9 @@ export const listAllUsers = createServerFn({ method: "GET" })
         const list = await supabaseAdmin.auth.admin.listUsers({ perPage: 1000, page: 1 });
         const needle = data.q.toLowerCase();
         const authMatched = (list.data?.users ?? []).filter(
-          (u) => (u.email ?? "").toLowerCase().includes(needle) || (u.phone ?? "").includes(needle),
+          (u: AuthUserSummary) => (u.email ?? "").toLowerCase().includes(needle) || (u.phone ?? "").includes(needle),
         );
-        const missing = authMatched.filter((u) => !matched.some((m) => m.id === u.id)).map((u) => u.id);
+        const missing = authMatched.filter((u: AuthUserSummary) => !matched.some((m: AdminProfileRow) => m.id === u.id)).map((u: AuthUserSummary) => u.id);
         if (missing.length > 0) {
           const { data: extra } = await supabaseAdmin
             .from("profiles")
@@ -243,7 +250,7 @@ export const listAllUsers = createServerFn({ method: "GET" })
         /* ignore auth listUsers failure */
       }
     }
-    const ids = matched.map((p) => p.id);
+    const ids = matched.map((p: AdminProfileRow) => p.id);
     if (ids.length === 0) return { rows: [], total: 0, page, pageSize };
 
     const [rolesRes, linksRes, cardsRes, leadsRes] = await Promise.all([
@@ -264,7 +271,7 @@ export const listAllUsers = createServerFn({ method: "GET" })
     }
 
     const rolesByUser = new Map<string, string[]>();
-    for (const r of rolesRes.data ?? []) {
+    for (const r of (rolesRes.data ?? []) as AdminUserRoleRow[]) {
       const arr = rolesByUser.get(r.user_id) ?? [];
       arr.push(r.role);
       rolesByUser.set(r.user_id, arr);
@@ -281,7 +288,7 @@ export const listAllUsers = createServerFn({ method: "GET" })
     const cardsCount = countBy(cardsRes.data ?? []);
     const leadsCount = countBy(leadsRes.data ?? []);
 
-    const rows = matched.map((p) => ({
+    const rows = matched.map((p: AdminProfileRow) => ({
       ...p,
       email: emailMap.get(p.id)?.email ?? null,
       phone: emailMap.get(p.id)?.phone ?? null,
@@ -293,7 +300,7 @@ export const listAllUsers = createServerFn({ method: "GET" })
     }));
     if (sort === "recently_active") {
       // Secondary in-memory sort by total activity (cards+leads+links) to break ties
-      rows.sort((a, b) => (b.cards_count + b.leads_count + b.links_count) - (a.cards_count + a.leads_count + a.links_count));
+      rows.sort((a: any, b: any) => (b.cards_count + b.leads_count + b.links_count) - (a.cards_count + a.leads_count + a.links_count));
     }
     return { rows, total: count ?? matched.length, page, pageSize };
   });
@@ -355,15 +362,15 @@ export const listAllLeads = createServerFn({ method: "GET" })
     const { data: rows, error, count } = await query;
     if (error) throwSupabase(error, "admin");
 
-    const ids = Array.from(new Set((rows ?? []).map((r) => r.profile_id)));
+    const ids = Array.from(new Set((rows ?? []).map((r: AdminLeadRow) => r.profile_id)));
     const profilesRes = ids.length
       ? await supabaseAdmin.from("profiles").select("id, username, full_name").in("id", ids)
       : { data: [] as Array<{ id: string; username: string | null; full_name: string | null }> };
-    const pMap = new Map((profilesRes.data ?? []).map((p) => [p.id, p]));
-    const enriched = (rows ?? []).map((r) => ({
+    const pMap = new Map((profilesRes.data ?? []).map((p: AdminProfileRow) => [p.id, p]));
+    const enriched = (rows ?? []).map((r: AdminLeadRow) => ({
       ...r,
-      profile_username: pMap.get(r.profile_id)?.username ?? null,
-      profile_full_name: pMap.get(r.profile_id)?.full_name ?? null,
+      profile_username: (pMap.get(r.profile_id ?? "") as { username?: string | null; full_name?: string | null } | undefined)?.username ?? null,
+      profile_full_name: (pMap.get(r.profile_id ?? "") as { username?: string | null; full_name?: string | null } | undefined)?.full_name ?? null,
     }));
     return { rows: enriched, total: count ?? 0, page, pageSize };
   });
@@ -458,7 +465,7 @@ export const getUserDetail = createServerFn({ method: "GET" })
     const authUser = authRes?.data?.user ?? null;
     return {
       profile: profileRes.data,
-      roles: (rolesRes.data ?? []).map((r) => r.role),
+      roles: (rolesRes.data ?? []).map((r: { role: string }) => r.role),
       auth: authUser
         ? {
             email: authUser.email ?? null,
@@ -524,7 +531,7 @@ export const listAdminActionsPaged = createServerFn({ method: "GET" })
     }
     const { data: rows, count } = await q;
     // Enrich with actor username/full_name
-    const actorIds = Array.from(new Set((rows ?? []).map((r) => r.actor_id).filter((x): x is string => Boolean(x))));
+    const actorIds = Array.from(new Set((rows ?? []).map((r: AdminActionRow) => r.actor_id).filter((x: string | null | undefined): x is string => Boolean(x))));
     const actorMap = new Map<string, { username: string | null; full_name: string | null }>();
     if (actorIds.length > 0) {
       const { data: profs } = await supabaseAdmin
@@ -533,7 +540,7 @@ export const listAdminActionsPaged = createServerFn({ method: "GET" })
         .in("id", actorIds);
       for (const p of profs ?? []) actorMap.set(p.id, { username: p.username, full_name: p.full_name });
     }
-    const enriched = (rows ?? []).map((r) => ({
+    const enriched = (rows ?? []).map((r: AdminActionRow) => ({
       ...r,
       actor_username: r.actor_id ? actorMap.get(r.actor_id)?.username ?? null : null,
       actor_full_name: r.actor_id ? actorMap.get(r.actor_id)?.full_name ?? null : null,
@@ -575,16 +582,16 @@ export const listAllCards = createServerFn({ method: "GET" })
     }
     const { data: rows, error, count } = await query;
     if (error) throwSupabase(error, "admin");
-    const ids = Array.from(new Set((rows ?? []).map((r) => r.profile_id).filter((x): x is string => Boolean(x))));
+    const ids = Array.from(new Set((rows ?? []).map((r: AdminCardRow) => r.profile_id).filter((x: string | null | undefined): x is string => Boolean(x))));
     const pMap = new Map<string, { username: string | null; full_name: string | null }>();
     if (ids.length > 0) {
       const { data: profs } = await supabaseAdmin
         .from("profiles")
         .select("id, username, full_name")
         .in("id", ids);
-      for (const p of profs ?? []) pMap.set(p.id, { username: p.username, full_name: p.full_name });
+      for (const p of (profs ?? []) as AdminProfileRow[]) pMap.set(p.id, { username: p.username ?? null, full_name: p.full_name ?? null });
     }
-    const enriched = (rows ?? []).map((r) => ({
+    const enriched = (rows ?? []).map((r: AdminCardRow) => ({
       ...r,
       profile_username: r.profile_id ? pMap.get(r.profile_id)?.username ?? null : null,
       profile_full_name: r.profile_id ? pMap.get(r.profile_id)?.full_name ?? null : null,

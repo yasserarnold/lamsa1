@@ -170,11 +170,11 @@ function AdminScannerPage() {
   }
 
   function exportAuditCsv() {
-    const scans = (actionsQuery.data ?? []).filter((a) => a.action === "card_scan_lookup");
+    const scans = (actionsQuery.data ?? []).filter((a: { action?: string | null }) => a.action === "card_scan_lookup");
     downloadCsv(
       `scan-audit-${new Date().toISOString().slice(0, 10)}.csv`,
       ["created_at", "uid", "normalized", "result", "status", "is_official", "target_id"],
-      scans.map((a) => {
+      scans.map((a: { metadata?: Record<string, unknown> | null; id?: string; created_at?: string | null; target_id?: string | null }) => {
         const m = (a.metadata ?? {}) as Record<string, unknown>;
         return [a.created_at, String(m.uid ?? ""), String(m.normalized ?? ""), String(m.result ?? ""), String(m.status ?? ""), String(m.is_official ?? ""), a.target_id ?? ""];
       }),
