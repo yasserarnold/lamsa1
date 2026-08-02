@@ -4,6 +4,8 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { assertAdmin } from "@/lib/server-guards";
 
+type AnySupabaseClient = any;
+
 function normalizeUid(raw: string) {
   return raw.replace(/[^0-9A-Fa-f]/g, "").toUpperCase();
 }

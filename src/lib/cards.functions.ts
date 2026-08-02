@@ -3,6 +3,8 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
+type AnySupabaseClient = any;
+
 function normalizeUid(raw: string) {
   return raw.replace(/[^0-9A-Fa-f]/g, "").toUpperCase();
 }
@@ -46,7 +48,7 @@ export const claimCard = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ uid: z.string().min(4).max(64) }).parse(d))
   .handler(async ({ data, context }) => {
-    const { supabase } = context;
+    const { supabase } = context as { supabase: AnySupabaseClient };
     const normalized = normalizeUid(data.uid);
     if (!/^[0-9A-F]{8,32}$/.test(normalized)) {
       throw new Error("صيغة UID غير صحيحة");
