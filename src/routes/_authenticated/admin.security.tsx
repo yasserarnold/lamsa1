@@ -69,9 +69,9 @@ function SecurityPage() {
     refetchInterval: 60_000,
   });
 
-  const eventsQ = useQuery({
+  const eventsQ = useQuery<{ events: Array<{ id: string; created_at: string; severity: "info" | "warn" | "critical"; category: string; action: string; actor_id: string | null; ip: string | null }> }>({
     queryKey: ["admin", "security", "events"],
-    queryFn: () => eventsFn({ data: { limit: 100 } }),
+    queryFn: async () => (await eventsFn({ data: { limit: 100 } })) as { events: Array<{ id: string; created_at: string; severity: "info" | "warn" | "critical"; category: string; action: string; actor_id: string | null; ip: string | null }> },
     refetchInterval: 30_000,
   });
 

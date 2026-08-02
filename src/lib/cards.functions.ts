@@ -32,7 +32,17 @@ async function logEvent(
 
 export const listMyCards = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .handler(async ({ context }): Promise<Array<{
+    id: string;
+    card_uid: string;
+    profile_id: string | null;
+    status: "unassigned" | "active" | "disabled";
+    is_official: boolean;
+    activated_at: string | null;
+    last_written_at: string | null;
+    created_at: string;
+    updated_at: string;
+  }>> => {
     const { supabase, userId } = context;
     const { data, error } = await supabase
       .from("nfc_cards")
@@ -217,7 +227,14 @@ export const deleteMyCard = createServerFn({ method: "POST" })
 
 export const listMyCardEvents = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .handler(async ({ context }): Promise<Array<{
+    id: string;
+    card_id: string | null;
+    card_uid: string;
+    event_type: "activated" | "written" | "deactivated" | "deleted" | "registered";
+    metadata: Record<string, unknown> | null;
+    created_at: string;
+  }>> => {
     const { supabase, userId } = context;
     const { data, error } = await supabase
       .from("card_events")
@@ -232,7 +249,14 @@ export const listMyCardEvents = createServerFn({ method: "GET" })
 /** Full history (up to 1000) for the NFC event log page. */
 export const listAllMyCardEvents = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .handler(async ({ context }): Promise<Array<{
+    id: string;
+    card_id: string | null;
+    card_uid: string;
+    event_type: "activated" | "written" | "deactivated" | "deleted" | "registered";
+    metadata: Record<string, unknown> | null;
+    created_at: string;
+  }>> => {
     const { supabase, userId } = context;
     const { data, error } = await supabase
       .from("card_events")

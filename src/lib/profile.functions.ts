@@ -448,7 +448,7 @@ export const getMyTapAnalytics = createServerFn({ method: "GET" })
       .limit(5000);
     if (error) throw error;
 
-    const rows = data ?? [];
+    const rows = (data ?? []) as Array<{ event_type: string; created_at: string }>;
     const dayKey = (iso: string) => iso.slice(0, 10);
     const byDay = new Map<string, number>();
     let views = 0;

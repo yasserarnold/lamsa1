@@ -18,6 +18,7 @@ import {
 import { Download, History } from "lucide-react";
 import { useLanguage, type TKey } from "@/lib/i18n";
 import { qk } from "@/lib/query-keys";
+import type { CardRow, CardEventRow } from "@/features/dashboard/cards/types";
 
 export const Route = createFileRoute("/_authenticated/dashboard/events")({
   head: () => ({
@@ -38,8 +39,8 @@ function EventsPage() {
   const eventsFn = useServerFn(listAllMyCardEvents);
   const cardsFn = useServerFn(listMyCards);
 
-  const eventsQ = useQuery({ queryKey: qk.cards.eventsAll(), queryFn: () => eventsFn() });
-  const cardsQ = useQuery({ queryKey: qk.cards.mine(), queryFn: () => cardsFn() });
+  const eventsQ = useQuery<Array<CardEventRow>>({ queryKey: qk.cards.eventsAll(), queryFn: async () => (await eventsFn()) as Array<CardEventRow> });
+  const cardsQ = useQuery<Array<CardRow>>({ queryKey: qk.cards.mine(), queryFn: async () => (await cardsFn()) as Array<CardRow> });
 
   const [type, setType] = useState<"all" | EventType>("all");
   const [search, setSearch] = useState("");

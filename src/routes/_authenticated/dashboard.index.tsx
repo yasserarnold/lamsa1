@@ -85,10 +85,23 @@ function DashboardPage() {
   const recentQuery = useQuery({ queryKey: qk.profile.recent(), queryFn: () => getRecent(), staleTime: 30_000 });
   const adminQuery = useQuery({ queryKey: qk.amIAdmin(), queryFn: () => checkAdmin() });
 
-  const profile = profileQuery.data?.profile;
-  const avatarUrl = profileQuery.data?.avatar_signed_url;
-  const stats = statsQuery.data;
-  const recent = recentQuery.data;
+  const profile = profileQuery.data?.profile as {
+    username?: string | null;
+    full_name?: string | null;
+    title?: string | null;
+    bio?: string | null;
+    is_published?: boolean | null;
+    id?: string | null;
+  } | undefined;
+  const avatarUrl = profileQuery.data?.avatar_signed_url as string | null | undefined;
+  const stats = statsQuery.data as {
+    links?: number;
+    leads?: number;
+    lastActivity?: { kind?: string; at?: string | null } | null;
+  } | undefined;
+  const recent = recentQuery.data as {
+    activeCards?: number;
+  } | undefined;
 
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({ username: "", full_name: "", title: "", bio: "", is_published: false });

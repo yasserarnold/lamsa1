@@ -38,7 +38,7 @@ import { useLanguage } from "@/lib/i18n";
 import { UidInputForm } from "@/features/dashboard/cards/UidInputForm";
 import { WriteModeSelector } from "@/features/dashboard/cards/WriteModeSelector";
 import { isNfcSupported, getNDEFReader, scanUidOnce } from "@/features/dashboard/cards/web-nfc";
-import type { MarkWriteInput, WriteMode } from "@/features/dashboard/cards/types";
+import { MarkWriteInput, WriteMode, type CardRow, type CardEventRow } from "@/features/dashboard/cards/types";
 
 export const Route = createFileRoute("/_authenticated/dashboard/cards")({
   head: () => ({
@@ -64,11 +64,19 @@ function CardsPage() {
   const adminFn = useServerFn(amIAdmin);
   const linksFn = useServerFn(listMyLinks);
 
-  const cardsQ = useQuery({ queryKey: qk.cards.mine(), queryFn: () => listFn() });
-  const eventsQ = useQuery({ queryKey: qk.cards.events(), queryFn: () => eventsFn() });
-  const profileQ = useQuery({ queryKey: qk.profile.me(), queryFn: () => profileFn() });
-  const linksQ = useQuery({ queryKey: qk.links.mine(), queryFn: () => linksFn() });
-  const adminQ = useQuery({ queryKey: qk.amIAdmin(), queryFn: () => adminFn() });
+  const cardsQ = useQuery<Array<CardRow>>({ queryKey: qk.cards.mine(), queryFn: async () => (await listFn()) as Array<CardRow> });
+  const eventsQ = useQuery<Array<CardEventRow>>({ queryKey: qk.cards.events(), queryFn: async () => (await eventsFn()) as Array<CardEventRow> });
+  const profileQ = useQuery<{
+    profile: { username?: string | null; full_name?: string | null; title?: string | null; bio?: string | null } | null;
+    avatar_signed_url?: string | null;
+    cover_signed_url?: string | null;
+  }>({ queryKey: qk.profile.me(), queryFn: async () => (await profileFn()) as {
+    profile: { username?: string | null; full_name?: string | null; title?: string | null; bio?: string | null } | null;
+    avatar_signed_url?: string | null;
+    cover_signed_url?: string | null;
+  } });
+  const linksQ = useQuery<Array<{ type: string; label: string; value: string }>>({ queryKey: qk.links.mine(), queryFn: async () => (await linksFn()) as Array<{ type: string; label: string; value: string }> });
+  const adminQ = useQuery<{ isAdmin?: boolean }>({ queryKey: qk.amIAdmin(), queryFn: async () => (await adminFn()) as { isAdmin?: boolean } });
   const isAdmin = adminQ.data?.isAdmin ?? false;
   const profile = profileQ.data?.profile ?? null;
   const username = profile?.username ?? null;
