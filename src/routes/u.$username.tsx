@@ -200,9 +200,8 @@ function PublicProfilePage() {
 
   const websiteLink = links.find((l) => {
     if (!l.value || !l.value.trim()) return false;
-    const t = l.type?.toLowerCase();
-    const v = l.value.trim();
-    return t === "website" || t === "url" || t === "custom" || v.startsWith("http") || (v.includes(".") && !v.includes("@"));
+    const t = l.type?.toLowerCase() ?? "";
+    return t === "website" || t === "url" || t === "site";
   });
 
   const cleanPhone = phoneLink
@@ -386,35 +385,40 @@ function PublicProfilePage() {
             )}
           </div>
 
-          {/* 3 Action Icon Pills */}
-          <div className="mt-4 flex items-center justify-center gap-3">
-            <a
-              href={cleanPhone ? `tel:${cleanPhone}` : "#"}
-              onClick={(e) => { if (!cleanPhone) { e.preventDefault(); setVcardOpen(true); } }}
-              aria-label="Phone"
-              className={`flex h-11 w-20 items-center justify-center rounded-full border transition-all ${activeTheme.actionPills}`}
-            >
-              <Phone className="size-5" />
-            </a>
-            <a
-              href={cleanEmail ? `mailto:${cleanEmail}` : "#"}
-              onClick={(e) => { if (!cleanEmail) { e.preventDefault(); setVcardOpen(true); } }}
-              aria-label="Email"
-              className={`flex h-11 w-20 items-center justify-center rounded-full border transition-all ${activeTheme.actionPills}`}
-            >
-              <Mail className="size-5" />
-            </a>
-            <a
-              href={cleanWebsite ?? "#"}
-              target={cleanWebsite ? "_blank" : undefined}
-              rel={cleanWebsite ? "noreferrer noopener" : undefined}
-              onClick={(e) => { if (!cleanWebsite) { e.preventDefault(); handleShare(); } }}
-              aria-label="Website"
-              className={`flex h-11 w-20 items-center justify-center rounded-full border transition-all ${activeTheme.actionPills}`}
-            >
-              <Globe className="size-5" />
-            </a>
-          </div>
+          {/* Action Icon Pills (Only show existing links) */}
+          {(cleanPhone || cleanEmail || cleanWebsite) && (
+            <div className="mt-4 flex items-center justify-center gap-3">
+              {cleanPhone && (
+                <a
+                  href={`tel:${cleanPhone}`}
+                  aria-label="Phone"
+                  className={`flex h-11 w-20 items-center justify-center rounded-full border transition-all ${activeTheme.actionPills}`}
+                >
+                  <Phone className="size-5" />
+                </a>
+              )}
+              {cleanEmail && (
+                <a
+                  href={`mailto:${cleanEmail}`}
+                  aria-label="Email"
+                  className={`flex h-11 w-20 items-center justify-center rounded-full border transition-all ${activeTheme.actionPills}`}
+                >
+                  <Mail className="size-5" />
+                </a>
+              )}
+              {cleanWebsite && (
+                <a
+                  href={cleanWebsite}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  aria-label="Website"
+                  className={`flex h-11 w-20 items-center justify-center rounded-full border transition-all ${activeTheme.actionPills}`}
+                >
+                  <Globe className="size-5" />
+                </a>
+              )}
+            </div>
+          )}
 
           {/* Primary CTA Row */}
           <div className="mt-5 flex items-center gap-3">
