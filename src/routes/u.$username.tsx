@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { toastError } from "@/lib/errors";
-import { Download, Send, Loader2, UserPlus, PhoneCall, QrCode, Share2 } from "lucide-react";
+import { Download, Send, Loader2, QrCode, Share2, Phone, Mail, Globe, ArrowRightLeft } from "lucide-react";
 
 import { trackProfileView, trackQrShare, trackShare, trackVCard } from "@/lib/track-tap";
 
@@ -54,8 +54,6 @@ export const Route = createFileRoute("/u/$username")({
       meta.push({ property: "og:image", content: p.avatar_signed_url });
       meta.push({ name: "twitter:image", content: p.avatar_signed_url });
     }
-    // Build contact fields from links, deduped by type to mirror the UI
-    // (one entry per channel — phone/email/website never appear twice).
     const seenType = new Set<string>();
     const first = (t: string) => {
       const l = (loaderData.links ?? []).find(
@@ -132,7 +130,7 @@ export const Route = createFileRoute("/u/$username")({
     const { username } = Route.useParams();
     const { t } = useLanguage();
     return (
-      <div className="min-h-screen bg-gradient-to-b from-muted/40 via-background to-muted/20 py-6">
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 py-6">
         <article className="mx-auto max-w-md px-5">
           <ProfileBreadcrumb username={username} displayName={`@${username}`} />
           <div className="mt-10 rounded-3xl border border-border bg-card p-8 text-center shadow-sm">
@@ -182,7 +180,12 @@ function PublicProfilePage() {
 
   const shareUrl = p.username ? publicProfileUrl(p.username) : "";
 
-  // Count a page visit once per session for this profile.
+  const heroImageUrl = p.cover_signed_url || p.avatar_signed_url;
+
+  const phoneLink = links.find((l) => l.type === "phone" && l.value && l.value.trim());
+  const emailLink = links.find((l) => l.type === "email" && l.value && l.value.trim());
+  const websiteLink = links.find((l) => l.type === "website" && l.value && l.value.trim());
+
   useEffect(() => {
     trackProfileView(p.id, p.username);
   }, [p.id, p.username]);
@@ -221,12 +224,10 @@ function PublicProfilePage() {
       trackShare(p.id, "copy");
       toast.success(t("pub.profile.toast.linkCopied"));
     } catch {
-      // user cancelled share — not an error
+      // user cancelled share
     }
   }
 
-  // Warn when the same quick-link channel appears more than once so future
-  // duplicates are easy to trace in the browser console.
   useEffect(() => {
     const QUICK = ["phone", "email", "website"] as const;
     const counts: Record<string, number> = {};
@@ -248,7 +249,7 @@ function PublicProfilePage() {
 
   const mutation = useMutation({
     mutationFn: () =>
-          submit({
+      submit({
         data: {
           profile_id: p.id,
           name: name.trim(),
@@ -284,143 +285,183 @@ function PublicProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-muted/40 via-background to-muted/20 py-6">
-      <article className="mx-auto max-w-md px-5">
-        <ProfileBreadcrumb username={p.username || ""} displayName={p.full_name} />
-        {/* Avatar */}
-        <div className="flex justify-center pt-6">
-          <div className="size-36 overflow-hidden rounded-full border-4 border-card bg-muted shadow-xl ring-1 ring-black/5">
-            {p.avatar_signed_url ? (
-              <img
-                src={`${p.avatar_signed_url}${p.avatar_signed_url.includes("?") ? "&" : "?"}v=${p.updated_at}`}
-                alt={p.full_name || ""}
-                className="h-full w-full object-cover"
-                width={144}
-                height={144}
-                fetchPriority="high"
-                decoding="async"
-              />
-            ) : (
-              <div className="grid h-full w-full place-items-center text-4xl font-bold text-muted-foreground">
-                {(p.full_name || p.username || "?").charAt(0).toUpperCase()}
-              </div>
+    <div className="min-h-screen bg-slate-100 dark:bg-slate-950 py-0 sm:py-6">
+      <article className="mx-auto max-w-md bg-white dark:bg-slate-900 min-h-screen sm:min-h-0 sm:rounded-3xl shadow-sm overflow-hidden flex flex-col border-x border-slate-200/60 dark:border-slate-800">
+        {/* Top Header / Profile Photo Banner */}
+        <div className="relative w-full h-[280px] sm:h-[320px] bg-slate-900 shrink-0">
+          {heroImageUrl ? (
+            <img
+              src={`${heroImageUrl}${heroImageUrl.includes("?") ? "&" : "?"}v=${p.updated_at}`}
+              alt={p.full_name || ""}
+              className="h-full w-full object-cover object-top"
+              fetchPriority="high"
+              decoding="async"
+            />
+          ) : (
+            <div className="grid h-full w-full place-items-center bg-gradient-to-br from-slate-800 to-slate-950 text-6xl font-bold text-white/20">
+              {(p.full_name || p.username || "?").charAt(0).toUpperCase()}
+            </div>
+          )}
+          {/* Subtle Overlays for Top Header */}
+          <div className="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-black/50 via-black/20 to-transparent pointer-events-none" />
+          <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-white dark:from-slate-900 via-white/80 dark:via-slate-900/80 to-transparent pointer-events-none" />
+        </div>
+
+        {/* Main Body */}
+        <div className="relative px-5 pt-1 pb-8 flex-1 flex flex-col -mt-4">
+          <ProfileBreadcrumb username={p.username || ""} displayName={p.full_name} />
+
+          {/* User Info */}
+          <div className="mt-2 text-center">
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
+              {p.full_name || p.username}
+            </h1>
+            {p.title && (
+              <p className="mt-0.5 text-sm sm:text-base font-normal text-slate-500 dark:text-slate-400">
+                {p.title}
+              </p>
+            )}
+            {p.bio && (
+              <p className="mt-1 text-xs sm:text-sm font-normal text-slate-400 dark:text-slate-500">
+                {p.bio}
+              </p>
             )}
           </div>
-        </div>
 
-        {/* Identity */}
-        <div className="mt-5 text-center">
-          <h1 className="text-2xl font-bold tracking-tight">{p.full_name || p.username}</h1>
-          {p.title && <p className="mt-1 text-[15px] text-muted-foreground">{p.title}</p>}
-          {p.bio && <p className="mt-3 text-sm leading-relaxed text-foreground/70">{p.bio}</p>}
-        </div>
+          {/* 3 Action Icon Pills */}
+          <div className="mt-4 flex items-center justify-center gap-3">
+            <a
+              href={phoneLink ? `tel:${phoneLink.value.replace(/\s/g, "")}` : "#"}
+              onClick={(e) => { if (!phoneLink) { e.preventDefault(); setVcardOpen(true); } }}
+              aria-label="Phone"
+              className="flex h-11 w-20 items-center justify-center rounded-full border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+            >
+              <Phone className="size-5" />
+            </a>
+            <a
+              href={emailLink ? `mailto:${emailLink.value}` : "#"}
+              onClick={(e) => { if (!emailLink) { e.preventDefault(); setVcardOpen(true); } }}
+              aria-label="Email"
+              className="flex h-11 w-20 items-center justify-center rounded-full border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+            >
+              <Mail className="size-5" />
+            </a>
+            <a
+              href={websiteLink ? (websiteLink.value.startsWith("http") ? websiteLink.value : `https://${websiteLink.value}`) : "#"}
+              target={websiteLink ? "_blank" : undefined}
+              rel={websiteLink ? "noreferrer noopener" : undefined}
+              onClick={(e) => { if (!websiteLink) { e.preventDefault(); handleShare(); } }}
+              aria-label="Website"
+              className="flex h-11 w-20 items-center justify-center rounded-full border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+            >
+              <Globe className="size-5" />
+            </a>
+          </div>
 
-        {/* Save contact */}
-        <Button
-          onClick={() => setVcardOpen(true)}
-          className="mt-6 h-14 w-full rounded-2xl bg-foreground text-background hover:bg-foreground/90 text-base font-semibold gap-2 shadow-md"
-        >
-          <UserPlus className="size-5" />
-          {t("pub.profile.saveContact")}
-        </Button>
+          {/* Primary CTA Row */}
+          <div className="mt-5 flex items-center gap-3">
+            <Button
+              onClick={() => setVcardOpen(true)}
+              className="h-14 flex-1 rounded-full bg-black hover:bg-black/90 dark:bg-white dark:text-black dark:hover:bg-white/90 text-white font-medium text-base sm:text-lg shadow-md transition-all active:scale-[0.99]"
+            >
+              {t("pub.profile.connectWithMe")}
+            </Button>
+            <Button
+              onClick={() => { setLeadDone(false); setLeadOpen(true); }}
+              aria-label={t("pub.profile.stayInTouch")}
+              className="size-14 shrink-0 rounded-full bg-black hover:bg-black/90 dark:bg-white dark:text-black dark:hover:bg-white/90 text-white flex items-center justify-center shadow-md transition-all active:scale-[0.99]"
+            >
+              <ArrowRightLeft className="size-6" />
+            </Button>
+          </div>
 
-        {/* Stay in touch — opens lead form */}
-        <Button
-          onClick={() => { setLeadDone(false); setLeadOpen(true); }}
-          variant="outline"
-          className="mt-3 h-14 w-full rounded-2xl text-base font-semibold gap-2 border-2"
-        >
-          <PhoneCall className="size-5" />
-          {t("pub.profile.stayInTouch")}
-        </Button>
+          {/* Secondary Actions: Share + QR */}
+          <div className="mt-3.5 grid grid-cols-2 gap-3">
+            <Button onClick={handleShare} variant="outline" className="h-10 rounded-full gap-2 text-xs font-semibold border-slate-200 dark:border-slate-800">
+              <Share2 className="size-4" />
+              {t("pub.profile.share")}
+            </Button>
+            <Button onClick={openQr} variant="outline" className="h-10 rounded-full gap-2 text-xs font-semibold border-slate-200 dark:border-slate-800">
+              <QrCode className="size-4" />
+              {t("pub.profile.qr")}
+            </Button>
+          </div>
 
-        {/* Share + QR */}
-        <div className="mt-3 grid grid-cols-2 gap-3">
-          <Button onClick={handleShare} variant="secondary" className="h-12 rounded-2xl gap-2 font-semibold">
-            <Share2 className="size-5" />
-            {t("pub.profile.share")}
-          </Button>
-          <Button onClick={openQr} variant="secondary" className="h-12 rounded-2xl gap-2 font-semibold">
-            <QrCode className="size-5" />
-            {t("pub.profile.qr")}
-          </Button>
-        </div>
-
-        <Dialog open={qrOpen} onOpenChange={setQrOpen}>
-          <DialogContent className="sm:max-w-sm">
-            <DialogHeader>
-              <DialogTitle>{t("pub.profile.qr.title")}</DialogTitle>
-              <DialogDescription>{t("pub.profile.qr.desc")}</DialogDescription>
-            </DialogHeader>
-            <div className="flex justify-center py-2">
-              {qrDataUrl ? (
-                <img src={qrDataUrl} alt={`${t("pub.profile.qr.alt")} ${p.full_name || p.username}`} className="size-56 rounded-xl bg-white p-2" />
-              ) : (
-                <Loader2 className="size-8 animate-spin text-muted-foreground" />
-              )}
-            </div>
-            <DialogFooter>
-              <Button onClick={downloadQr} disabled={!qrDataUrl} className="gap-2">
-                <Download className="size-4" />
-                {t("pub.profile.qr.download")}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
-        {/* Single links section — all links live here. Deduped: one tile per
-            type so the same channel never appears twice. */}
-        {(() => {
-          const QUICK = ["phone", "email", "website"] as const;
-          const seen = new Set<string>();
-          const tiles = links.filter((l) => {
-            if (!l.value || !l.value.trim()) return false;
-            if (seen.has(l.type)) return false;
-            seen.add(l.type);
-            return true;
-          });
-          const hasAnyQuick = QUICK.some((t) => seen.has(t));
-
-          if (tiles.length === 0) {
-            return (
-              <div
-                className="mt-8 rounded-2xl border border-dashed border-border bg-muted/30 p-6 text-center"
-                data-testid="link-grid-empty"
-              >
-                <p className="text-sm font-medium text-foreground/80">
-                  {t("pub.profile.links.emptyTitle")}
-                </p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {t("pub.profile.links.emptyDesc")}
-                </p>
+          <Dialog open={qrOpen} onOpenChange={setQrOpen}>
+            <DialogContent className="sm:max-w-sm">
+              <DialogHeader>
+                <DialogTitle>{t("pub.profile.qr.title")}</DialogTitle>
+                <DialogDescription>{t("pub.profile.qr.desc")}</DialogDescription>
+              </DialogHeader>
+              <div className="flex justify-center py-2">
+                {qrDataUrl ? (
+                  <img src={qrDataUrl} alt={`${t("pub.profile.qr.alt")} ${p.full_name || p.username}`} className="size-56 rounded-xl bg-white p-2" />
+                ) : (
+                  <Loader2 className="size-8 animate-spin text-muted-foreground" />
+                )}
               </div>
-            );
-          }
+              <DialogFooter>
+                <Button onClick={downloadQr} disabled={!qrDataUrl} className="gap-2">
+                  <Download className="size-4" />
+                  {t("pub.profile.qr.download")}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
 
-          return (
-            <>
-              <div
-                className="mt-8 grid grid-cols-3 gap-3 sm:gap-4"
-                data-testid="link-grid"
-              >
-                {tiles.map((l) => (
-                  <LinkTile key={l.id} link={l} profileId={p.id} />
-                ))}
-              </div>
-              {!hasAnyQuick && (
-                <p
-                  className="mt-3 text-center text-xs text-muted-foreground"
-                  data-testid="quick-links-missing"
+          {/* Links Grid */}
+          {(() => {
+            const QUICK = ["phone", "email", "website"] as const;
+            const seen = new Set<string>();
+            const tiles = links.filter((l) => {
+              if (!l.value || !l.value.trim()) return false;
+              if (seen.has(l.type)) return false;
+              seen.add(l.type);
+              return true;
+            });
+            const hasAnyQuick = QUICK.some((t) => seen.has(t));
+
+            if (tiles.length === 0) {
+              return (
+                <div
+                  className="mt-8 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 p-6 text-center"
+                  data-testid="link-grid-empty"
                 >
-                  {t("pub.profile.links.missingQuick")}
-                </p>
-              )}
-            </>
-          );
-        })()}
+                  <p className="text-sm font-medium text-foreground/80">
+                    {t("pub.profile.links.emptyTitle")}
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {t("pub.profile.links.emptyDesc")}
+                  </p>
+                </div>
+              );
+            }
 
-        <div className="py-6 text-center text-xs text-muted-foreground">
-          {t("pub.profile.poweredBy")} <Link to="/" className="font-brand text-lg text-primary">{t("pub.brand.name")}</Link>
+            return (
+              <>
+                <div
+                  className="mt-6 grid grid-cols-3 gap-3.5 sm:gap-4"
+                  data-testid="link-grid"
+                >
+                  {tiles.map((l) => (
+                    <LinkTile key={l.id} link={l} profileId={p.id} />
+                  ))}
+                </div>
+                {!hasAnyQuick && (
+                  <p
+                    className="mt-3 text-center text-xs text-muted-foreground"
+                    data-testid="quick-links-missing"
+                  >
+                    {t("pub.profile.links.missingQuick")}
+                  </p>
+                )}
+              </>
+            );
+          })()}
+
+          <div className="pt-8 pb-2 text-center text-xs text-muted-foreground">
+            {t("pub.profile.poweredBy")} <Link to="/" className="font-brand text-lg text-primary">{t("pub.brand.name")}</Link>
+          </div>
         </div>
       </article>
 

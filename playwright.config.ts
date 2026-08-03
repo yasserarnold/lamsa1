@@ -14,7 +14,7 @@ export default defineConfig({
   retries: 0,
   reporter: [["list"]],
   use: {
-    baseURL: process.env.E2E_BASE_URL || "http://localhost:8080",
+    baseURL: process.env.E2E_BASE_URL || "http://lamsa.live",
     trace: "on-first-retry",
   },
   projects: [

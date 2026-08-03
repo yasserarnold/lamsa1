@@ -1,23 +1,6 @@
 import { useLanguage } from "@/lib/i18n";
-import { labelForKind } from "@/lib/social";
-import {
-  Mail,
-  Phone,
-  MessageCircle,
-  Globe,
-  Instagram,
-  Linkedin,
-  Twitter,
-  Youtube,
-  Facebook,
-  Send,
-  Music2,
-  Github,
-  MapPin,
-  CreditCard,
-  MessagesSquare,
-  Link as LinkIcon,
-} from "lucide-react";
+import { labelForKind, socialIcon } from "@/lib/social";
+import { trackLinkTap } from "@/lib/track-tap";
 
 export function resolveLink(type: string, value: string) {
   const v = value.trim();
@@ -25,41 +8,31 @@ export function resolveLink(type: string, value: string) {
   const isPhoneLike = /^[+0-9\s()-]{5,}$/.test(v);
   const t = type.toLowerCase();
 
-  if (t === "email") return { href: `mailto:${v}`, Icon: Mail, tint: "#0d7a5f" };
-  if (t === "phone") return { href: `tel:${v.replace(/\s/g, "")}`, Icon: Phone, tint: "#0d7a5f" };
+  if (t === "email") return { href: `mailto:${v}` };
+  if (t === "phone") return { href: `tel:${v.replace(/\s/g, "")}` };
   if (t === "whatsapp" || lower.includes("wa.me") || lower.includes("whatsapp")) {
     const digits = v.replace(/[^0-9]/g, "");
     const href = v.startsWith("http") ? v : `https://wa.me/${digits}`;
-    return { href, Icon: MessageCircle, tint: "#25D366" };
+    return { href };
   }
   if (t === "telegram" || lower.includes("t.me") || lower.includes("telegram")) {
-    return { href: normalize(v), Icon: Send, tint: "#229ED9" };
+    return { href: normalize(v) };
   }
   if (t === "messenger" || lower.includes("m.me") || lower.includes("messenger")) {
-    return { href: normalize(v), Icon: MessagesSquare, tint: "#0084FF" };
+    return { href: normalize(v) };
   }
   if (t === "instapay" || lower.includes("instapay")) {
-    return { href: v.startsWith("http") ? v : `https://ipn.eg/S/${v}/instapay`, Icon: CreditCard, tint: "#7c3aed" };
+    return { href: v.startsWith("http") ? v : `https://ipn.eg/S/${v}/instapay` };
   }
   if (t === "paypal" || lower.includes("paypal")) {
-    return { href: normalize(v), Icon: CreditCard, tint: "#003087" };
-  }
-  if (lower.includes("instagram")) return { href: normalize(v), Icon: Instagram, tint: "#E4405F" };
-  if (lower.includes("linkedin")) return { href: normalize(v), Icon: Linkedin, tint: "#0A66C2" };
-  if (lower.includes("twitter") || lower.includes("x.com")) return { href: normalize(v), Icon: Twitter, tint: "#000000" };
-  if (lower.includes("youtube")) return { href: normalize(v), Icon: Youtube, tint: "#FF0000" };
-  if (lower.includes("facebook") || lower.includes("fb.com")) return { href: normalize(v), Icon: Facebook, tint: "#1877F2" };
-  if (lower.includes("tiktok")) return { href: normalize(v), Icon: Music2, tint: "#000000" };
-  if (lower.includes("github")) return { href: normalize(v), Icon: Github, tint: "#181717" };
-  if (lower.includes("maps.") || lower.includes("goo.gl/maps") || t === "location") {
-    return { href: normalize(v), Icon: MapPin, tint: "#EA4335" };
+    return { href: normalize(v) };
   }
   if (t === "website" || lower.startsWith("http") || lower.includes(".")) {
-    if (isPhoneLike) return { href: `tel:${v.replace(/\s/g, "")}`, Icon: Phone, tint: "#0d7a5f" };
-    return { href: normalize(v), Icon: Globe, tint: "#0d7a5f" };
+    if (isPhoneLike) return { href: `tel:${v.replace(/\s/g, "")}` };
+    return { href: normalize(v) };
   }
-  if (isPhoneLike) return { href: `tel:${v.replace(/\s/g, "")}`, Icon: Phone, tint: "#0d7a5f" };
-  return { href: normalize(v), Icon: LinkIcon, tint: "#64748b" };
+  if (isPhoneLike) return { href: `tel:${v.replace(/\s/g, "")}` };
+  return { href: normalize(v) };
 }
 
 function normalize(v: string): string {
@@ -67,7 +40,57 @@ function normalize(v: string): string {
   return `https://${v}`;
 }
 
-import { trackLinkTap } from "@/lib/track-tap";
+function getBadgeBackground(type: string, value: string): { background?: string; backgroundColor?: string } {
+  const t = type.toLowerCase();
+  const lower = value.toLowerCase();
+
+  if (t === "facebook" || lower.includes("facebook") || lower.includes("fb.com")) {
+    return { backgroundColor: "#1877F2" };
+  }
+  if (t === "wa_business" || t === "wabusiness" || lower.includes("wa business")) {
+    return { backgroundColor: "#25D366" };
+  }
+  if (t === "instagram" || lower.includes("instagram")) {
+    return { background: "linear-gradient(135deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)" };
+  }
+  if (t === "instapay" || lower.includes("instapay")) {
+    return { background: "linear-gradient(135deg, #4A154B 0%, #7C2A99 50%, #E85E34 100%)" };
+  }
+  if (t === "whatsapp" || lower.includes("wa.me") || lower.includes("whatsapp")) {
+    return { backgroundColor: "#25D366" };
+  }
+  if (t === "paypal" || lower.includes("paypal")) {
+    return { backgroundColor: "#0070BA" };
+  }
+  if (t === "telegram" || lower.includes("t.me") || lower.includes("telegram")) {
+    return { backgroundColor: "#229ED9" };
+  }
+  if (t === "messenger" || lower.includes("m.me") || lower.includes("messenger")) {
+    return { background: "linear-gradient(135deg, #00B2FF 0%, #006AFF 50%, #9900FF 100%)" };
+  }
+  if (t === "tiktok" || lower.includes("tiktok")) {
+    return { backgroundColor: "#000000" };
+  }
+  if (t === "linkedin" || lower.includes("linkedin")) {
+    return { backgroundColor: "#0A66C2" };
+  }
+  if (t === "x" || t === "twitter" || lower.includes("twitter") || lower.includes("x.com")) {
+    return { backgroundColor: "#000000" };
+  }
+  if (t === "youtube" || lower.includes("youtube")) {
+    return { backgroundColor: "#FF0000" };
+  }
+  if (t === "email") {
+    return { backgroundColor: "#0F766E" };
+  }
+  if (t === "phone") {
+    return { backgroundColor: "#16A34A" };
+  }
+  if (t === "website") {
+    return { backgroundColor: "#2563EB" };
+  }
+  return { backgroundColor: "#475569" };
+}
 
 export function LinkTile({
   link,
@@ -77,11 +100,9 @@ export function LinkTile({
   profileId?: string;
 }) {
   const { lang, t: translate } = useLanguage();
-  const { href, Icon, tint } = resolveLink(link.type, link.value);
+  const { href } = resolveLink(link.type, link.value);
   const label = link.label?.trim() || labelForKind(link.type, lang);
 
-  // Build a descriptive accessible name per channel so screen readers hear
-  // the action, not just the raw label.
   const linkType = link.type.toLowerCase();
   const ariaLabel =
     linkType === "phone"
@@ -101,6 +122,8 @@ export function LinkTile({
     trackLinkTap({ profileId, linkId: link.id, linkType: link.type });
   };
 
+  const badgeStyle = getBadgeBackground(link.type, link.value);
+
   return (
     <a
       href={href}
@@ -110,17 +133,18 @@ export function LinkTile({
       data-testid="link-tile"
       onClick={handleClick}
       onAuxClick={handleClick}
-      className="group flex h-full min-h-[96px] w-full flex-col items-center justify-center gap-2 rounded-2xl bg-card px-2 py-4 shadow-sm ring-1 ring-black/5 transition hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:min-h-[116px] sm:gap-2.5 sm:px-3 sm:py-5"
+      className="group flex h-full min-h-[102px] w-full flex-col items-center justify-center gap-2.5 rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 px-2 py-4 shadow-2xs transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:min-h-[114px] sm:px-3 sm:py-4.5"
     >
-
       <div
         aria-hidden="true"
-        className="grid size-10 place-items-center rounded-xl text-white shadow-sm sm:size-11"
-        style={{ backgroundColor: tint }}
+        className="grid size-11 place-items-center rounded-full text-white shadow-sm transition-transform duration-200 group-hover:scale-105 sm:size-12"
+        style={badgeStyle}
       >
-        <Icon className="size-[18px] sm:size-5" />
+        {socialIcon(link.type)}
       </div>
-      <span className="line-clamp-1 w-full text-center text-[12px] font-medium leading-tight text-foreground/80 sm:text-sm">{label}</span>
+      <span className="line-clamp-1 w-full text-center text-[12px] font-medium leading-tight text-slate-800 dark:text-slate-200 sm:text-[13px]">
+        {label}
+      </span>
     </a>
   );
 }
