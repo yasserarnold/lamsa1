@@ -62,7 +62,11 @@ function MessengerIcon() {
 
 function InstaPayIcon() {
   return (
-    <span className="font-extrabold text-[12px] tracking-tight text-white italic">iXP</span>
+    <img
+      src="/instapay-icon.png"
+      alt="InstaPay"
+      className="size-6 object-contain"
+    />
   );
 }
 

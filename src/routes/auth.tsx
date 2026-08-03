@@ -53,16 +53,36 @@ function AuthPage() {
 
   // Client-only session check + OAuth hydration fallback
   useEffect(() => {
+    let mounted = true;
+    const timeoutId = setTimeout(() => {
+      if (mounted) setCheckingSession(false);
+    }, 2000);
+
     const { data: sub } = supabase.auth.onAuthStateChange((event: string, session: unknown) => {
       if (event === "SIGNED_IN" && session) {
+        clearTimeout(timeoutId);
         navigate({ to: targetRedirect, replace: true });
       }
     });
-    void supabase.auth.getSession().then(({ data }: { data: { session?: unknown } }) => {
-      if (data.session) navigate({ to: targetRedirect, replace: true });
-      else setCheckingSession(false);
-    });
-    return () => sub.subscription.unsubscribe();
+
+    void supabase.auth
+      .getSession()
+      .then(({ data }: { data: { session?: unknown } }) => {
+        clearTimeout(timeoutId);
+        if (!mounted) return;
+        if (data.session) navigate({ to: targetRedirect, replace: true });
+        else setCheckingSession(false);
+      })
+      .catch(() => {
+        clearTimeout(timeoutId);
+        if (mounted) setCheckingSession(false);
+      });
+
+    return () => {
+      mounted = false;
+      clearTimeout(timeoutId);
+      sub.subscription.unsubscribe();
+    };
   }, [navigate, targetRedirect]);
 
   if (checkingSession) {

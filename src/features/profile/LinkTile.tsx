@@ -54,7 +54,7 @@ function getBadgeBackground(type: string, value: string): { background?: string;
     return { background: "linear-gradient(135deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)" };
   }
   if (t === "instapay" || lower.includes("instapay")) {
-    return { background: "linear-gradient(135deg, #4A154B 0%, #7C2A99 50%, #E85E34 100%)" };
+    return { backgroundColor: "#ffffff" };
   }
   if (t === "whatsapp" || lower.includes("wa.me") || lower.includes("whatsapp")) {
     return { backgroundColor: "#25D366" };

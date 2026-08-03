@@ -173,10 +173,27 @@ function AuthNav() {
       resolveLabel(session.user.id, fallback, session.user.email ?? null);
     }
 
-    supabase.auth.getSession().then(({ data }: { data: { session: import("@supabase/supabase-js").Session | null } }) => applySession(data.session));
+    // Safety timeout: fallback to 'out' if getSession hangs longer than 2s
+    const timeoutId = setTimeout(() => {
+      if (mounted) {
+        setState((prev) => (prev.status === "loading" ? { status: "out" } : prev));
+      }
+    }, 2000);
+
+    supabase.auth
+      .getSession()
+      .then(({ data }: { data: { session: import("@supabase/supabase-js").Session | null } }) => {
+        clearTimeout(timeoutId);
+        applySession(data.session);
+      })
+      .catch(() => {
+        clearTimeout(timeoutId);
+        if (mounted) setState({ status: "out" });
+      });
 
     const { data: sub } = supabase.auth.onAuthStateChange((event: string, session: import("@supabase/supabase-js").Session | null) => {
       if (!mounted) return;
+      clearTimeout(timeoutId);
       if (event === "TOKEN_REFRESHED" && !session) {
         setState({ status: "expired" });
         return;
@@ -186,6 +203,7 @@ function AuthNav() {
 
     return () => {
       mounted = false;
+      clearTimeout(timeoutId);
       sub.subscription.unsubscribe();
     };
   }, [t]);
