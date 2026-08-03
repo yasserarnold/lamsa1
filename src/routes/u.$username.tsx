@@ -8,6 +8,7 @@ import { publicProfileUrl } from "@/lib/public-url";
 import { LinkTile } from "@/features/profile/LinkTile";
 import { ProfileBreadcrumb } from "@/features/profile/ProfileBreadcrumb";
 import { useLanguage } from "@/lib/i18n";
+import { getProfileTheme } from "@/lib/profile-themes";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -167,6 +168,7 @@ function PublicProfilePage() {
   const p = data.profile;
   const links: LinkRow[] = data.links;
   const { t, lang, setLang } = useLanguage();
+  const activeTheme = getProfileTheme((p as { theme?: string | null }).theme);
 
   const submit = useServerFn(submitLead);
   const [name, setName] = useState("");
@@ -316,10 +318,10 @@ function PublicProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-100 dark:bg-slate-950 py-0 sm:py-6">
-      <article className="mx-auto max-w-md bg-white dark:bg-slate-900 min-h-screen sm:min-h-0 sm:rounded-3xl shadow-sm overflow-hidden flex flex-col border-x border-slate-200/60 dark:border-slate-800">
+    <div className="min-h-screen bg-slate-100 dark:bg-slate-950 py-0 sm:py-6 transition-colors">
+      <article className={`mx-auto max-w-md min-h-screen sm:min-h-0 sm:rounded-3xl shadow-lg overflow-hidden flex flex-col border transition-colors ${activeTheme.cardBg} ${activeTheme.cardBorder}`}>
         {/* Top Header / Profile Photo Banner */}
-        <div className="relative w-full h-[280px] sm:h-[320px] bg-slate-900 shrink-0">
+        <div className={`relative w-full h-[280px] sm:h-[320px] ${activeTheme.bannerGradient} shrink-0 transition-colors`}>
           {heroImageUrl ? (
             <img
               src={`${heroImageUrl}${heroImageUrl.includes("?") ? "&" : "?"}v=${p.updated_at}`}
@@ -329,7 +331,7 @@ function PublicProfilePage() {
               decoding="async"
             />
           ) : (
-            <div className="grid h-full w-full place-items-center bg-gradient-to-br from-slate-800 to-slate-950 text-6xl font-bold text-white/20">
+            <div className="grid h-full w-full place-items-center text-6xl font-bold text-white/20">
               {(p.full_name || p.username || "?").charAt(0).toUpperCase()}
             </div>
           )}
@@ -360,7 +362,7 @@ function PublicProfilePage() {
           </div>
           {/* Subtle Overlays for Top Header */}
           <div className="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-black/50 via-black/20 to-transparent pointer-events-none" />
-          <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-white dark:from-slate-900 via-white/80 dark:via-slate-900/80 to-transparent pointer-events-none" />
+          <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
         </div>
 
         {/* Main Body */}
@@ -369,16 +371,16 @@ function PublicProfilePage() {
 
           {/* User Info */}
           <div className="mt-2 text-center">
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
+            <h1 className={`text-xl sm:text-2xl font-bold tracking-tight ${activeTheme.textTitle}`}>
               {p.full_name || p.username}
             </h1>
             {p.title && (
-              <p className="mt-0.5 text-sm sm:text-base font-normal text-slate-500 dark:text-slate-400">
+              <p className={`mt-0.5 text-sm sm:text-base font-normal ${activeTheme.textSub}`}>
                 {p.title}
               </p>
             )}
             {p.bio && (
-              <p className="mt-1 text-xs sm:text-sm font-normal text-slate-400 dark:text-slate-500">
+              <p className={`mt-1 text-xs sm:text-sm font-normal opacity-90 ${activeTheme.textSub}`}>
                 {p.bio}
               </p>
             )}
@@ -390,7 +392,7 @@ function PublicProfilePage() {
               href={cleanPhone ? `tel:${cleanPhone}` : "#"}
               onClick={(e) => { if (!cleanPhone) { e.preventDefault(); setVcardOpen(true); } }}
               aria-label="Phone"
-              className="flex h-11 w-20 items-center justify-center rounded-full border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+              className={`flex h-11 w-20 items-center justify-center rounded-full border transition-all ${activeTheme.actionPills}`}
             >
               <Phone className="size-5" />
             </a>
@@ -398,7 +400,7 @@ function PublicProfilePage() {
               href={cleanEmail ? `mailto:${cleanEmail}` : "#"}
               onClick={(e) => { if (!cleanEmail) { e.preventDefault(); setVcardOpen(true); } }}
               aria-label="Email"
-              className="flex h-11 w-20 items-center justify-center rounded-full border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+              className={`flex h-11 w-20 items-center justify-center rounded-full border transition-all ${activeTheme.actionPills}`}
             >
               <Mail className="size-5" />
             </a>
@@ -408,7 +410,7 @@ function PublicProfilePage() {
               rel={cleanWebsite ? "noreferrer noopener" : undefined}
               onClick={(e) => { if (!cleanWebsite) { e.preventDefault(); handleShare(); } }}
               aria-label="Website"
-              className="flex h-11 w-20 items-center justify-center rounded-full border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+              className={`flex h-11 w-20 items-center justify-center rounded-full border transition-all ${activeTheme.actionPills}`}
             >
               <Globe className="size-5" />
             </a>
@@ -418,14 +420,14 @@ function PublicProfilePage() {
           <div className="mt-5 flex items-center gap-3">
             <Button
               onClick={() => setVcardOpen(true)}
-              className="h-14 flex-1 rounded-full bg-black hover:bg-black/90 dark:bg-white dark:text-black dark:hover:bg-white/90 text-white font-medium text-base sm:text-lg shadow-md transition-all active:scale-[0.99]"
+              className={`h-14 flex-1 rounded-full font-medium text-base sm:text-lg shadow-md transition-all active:scale-[0.99] ${activeTheme.ctaButton}`}
             >
               {t("pub.profile.connectWithMe")}
             </Button>
             <Button
               onClick={() => { setLeadDone(false); setLeadOpen(true); }}
               aria-label={t("pub.profile.stayInTouch")}
-              className="size-14 shrink-0 rounded-full bg-black hover:bg-black/90 dark:bg-white dark:text-black dark:hover:bg-white/90 text-white flex items-center justify-center shadow-md transition-all active:scale-[0.99]"
+              className={`size-14 shrink-0 rounded-full flex items-center justify-center shadow-md transition-all active:scale-[0.99] ${activeTheme.ctaButton}`}
             >
               <ArrowRightLeft className="size-6" />
             </Button>
@@ -433,11 +435,11 @@ function PublicProfilePage() {
 
           {/* Secondary Actions: Share + QR */}
           <div className="mt-3.5 grid grid-cols-2 gap-3">
-            <Button onClick={handleShare} variant="outline" className="h-10 rounded-full gap-2 text-xs font-semibold border-slate-200 dark:border-slate-800">
+            <Button onClick={handleShare} variant="outline" className={`h-10 rounded-full gap-2 text-xs font-semibold ${activeTheme.secondaryButton}`}>
               <Share2 className="size-4" />
               {t("pub.profile.share")}
             </Button>
-            <Button onClick={openQr} variant="outline" className="h-10 rounded-full gap-2 text-xs font-semibold border-slate-200 dark:border-slate-800">
+            <Button onClick={openQr} variant="outline" className={`h-10 rounded-full gap-2 text-xs font-semibold ${activeTheme.secondaryButton}`}>
               <QrCode className="size-4" />
               {t("pub.profile.qr")}
             </Button>

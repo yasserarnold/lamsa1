@@ -10,6 +10,7 @@ import {
   getMyStats,
   getDashboardRecent,
 } from "@/lib/profile.functions";
+import { PROFILE_THEMES } from "@/lib/profile-themes";
 import { amIAdmin } from "@/lib/admin.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,8 +30,10 @@ import {
   Sparkles,
   ShieldCheck,
   QrCode,
+  Pencil,
   Copy,
   Check,
+  Palette,
   ArrowUpRight,
   Plus,
   Radio,
@@ -104,7 +107,7 @@ function DashboardPage() {
   } | undefined;
 
   const [editing, setEditing] = useState(false);
-  const [form, setForm] = useState({ username: "", full_name: "", title: "", bio: "", is_published: false });
+  const [form, setForm] = useState({ username: "", full_name: "", title: "", bio: "", theme: "default", is_published: false });
   const [dirty, setDirty] = useState(false);
   const [copied, setCopied] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -116,6 +119,7 @@ function DashboardPage() {
         full_name: profile.full_name ?? "",
         title: profile.title ?? "",
         bio: profile.bio ?? "",
+        theme: profile.theme ?? "default",
         is_published: profile.is_published ?? false,
       });
       setDirty(false);
@@ -140,6 +144,7 @@ function DashboardPage() {
           full_name: form.full_name || null,
           title: form.title || null,
           bio: form.bio || null,
+          theme: form.theme || "default",
           is_published: form.is_published,
         },
       }),
@@ -535,6 +540,48 @@ function DashboardPage() {
                   <div className="md:col-span-2">
                     <Label htmlFor="bio">{t("dash.home.bioLabel")}</Label>
                     <Textarea id="bio" rows={3} value={form.bio} onChange={(e) => update("bio", e.target.value)} />
+                  </div>
+
+                  {/* Theme Selection */}
+                  <div className="md:col-span-2 space-y-3 pt-2">
+                    <div>
+                      <Label className="flex items-center gap-2 text-sm font-semibold">
+                        <Palette className="size-4 text-primary" />
+                        <span>ثيم البروفايل (Profile Theme)</span>
+                      </Label>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        اختر المظهر والشكل الجمالي الأنسب لبروفايلك من بين الثيمات المصممة بعناية
+                      </p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 md:grid-cols-7">
+                      {Object.values(PROFILE_THEMES).map((theme) => {
+                        const isSelected = (form.theme || "default") === theme.id;
+                        return (
+                          <button
+                            key={theme.id}
+                            type="button"
+                            onClick={() => update("theme", theme.id)}
+                            className={`group relative flex flex-col items-center gap-2 rounded-xl border p-2.5 text-center transition-all ${
+                              isSelected
+                                ? "border-primary bg-primary/5 ring-2 ring-primary/20 shadow-xs scale-[1.02]"
+                                : "border-border bg-card hover:border-foreground/20 hover:bg-accent/40"
+                            }`}
+                          >
+                            <div
+                              className="h-10 w-full rounded-lg shadow-inner flex items-center justify-center text-white"
+                              style={{ background: theme.previewBg }}
+                            >
+                              {isSelected && (
+                                <Check className="size-4 drop-shadow-md text-white stroke-[3]" />
+                              )}
+                            </div>
+                            <span className="text-[11px] font-medium leading-tight">
+                              {theme.nameAr}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
 

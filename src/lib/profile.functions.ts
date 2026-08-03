@@ -261,6 +261,7 @@ export const updateMyProfile = createServerFn({ method: "POST" })
         full_name: z.string().trim().max(120).optional().nullable(),
         title: z.string().trim().max(120).optional().nullable(),
         bio: z.string().trim().max(500).optional().nullable(),
+        theme: z.string().trim().max(60).optional().nullable(),
         is_published: z.boolean().optional(),
       })
       .parse(d),
@@ -285,6 +286,7 @@ export const updateMyProfile = createServerFn({ method: "POST" })
         ...(data.full_name !== undefined ? { full_name: data.full_name } : {}),
         ...(data.title !== undefined ? { title: data.title } : {}),
         ...(data.bio !== undefined ? { bio: data.bio } : {}),
+        ...(data.theme !== undefined ? { theme: data.theme } : {}),
         ...(data.is_published !== undefined ? { is_published: data.is_published } : {}),
       }, { onConflict: "id" })
       .select("*")
