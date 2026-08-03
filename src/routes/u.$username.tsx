@@ -182,9 +182,40 @@ function PublicProfilePage() {
 
   const heroImageUrl = p.cover_signed_url || p.avatar_signed_url;
 
-  const phoneLink = links.find((l) => l.type === "phone" && l.value && l.value.trim());
-  const emailLink = links.find((l) => l.type === "email" && l.value && l.value.trim());
-  const websiteLink = links.find((l) => l.type === "website" && l.value && l.value.trim());
+  const phoneLink = links.find((l) => {
+    if (!l.value || !l.value.trim()) return false;
+    const t = l.type?.toLowerCase();
+    const v = l.value.trim();
+    return t === "phone" || t === "whatsapp" || t === "wabusiness" || /^[+0-9\s()-]{6,}$/.test(v);
+  });
+
+  const emailLink = links.find((l) => {
+    if (!l.value || !l.value.trim()) return false;
+    const t = l.type?.toLowerCase();
+    const v = l.value.trim();
+    return t === "email" || (v.includes("@") && v.includes("."));
+  });
+
+  const websiteLink = links.find((l) => {
+    if (!l.value || !l.value.trim()) return false;
+    const t = l.type?.toLowerCase();
+    const v = l.value.trim();
+    return t === "website" || t === "url" || t === "custom" || v.startsWith("http") || (v.includes(".") && !v.includes("@"));
+  });
+
+  const cleanPhone = phoneLink
+    ? phoneLink.value.trim().replace(/^tel:/i, "").replace(/\s/g, "")
+    : null;
+
+  const cleanEmail = emailLink
+    ? emailLink.value.trim().replace(/^mailto:/i, "")
+    : null;
+
+  const cleanWebsite = websiteLink
+    ? websiteLink.value.trim().startsWith("http")
+      ? websiteLink.value.trim()
+      : `https://${websiteLink.value.trim()}`
+    : null;
 
   useEffect(() => {
     trackProfileView(p.id, p.username);
@@ -331,26 +362,26 @@ function PublicProfilePage() {
           {/* 3 Action Icon Pills */}
           <div className="mt-4 flex items-center justify-center gap-3">
             <a
-              href={phoneLink ? `tel:${phoneLink.value.replace(/\s/g, "")}` : "#"}
-              onClick={(e) => { if (!phoneLink) { e.preventDefault(); setVcardOpen(true); } }}
+              href={cleanPhone ? `tel:${cleanPhone}` : "#"}
+              onClick={(e) => { if (!cleanPhone) { e.preventDefault(); setVcardOpen(true); } }}
               aria-label="Phone"
               className="flex h-11 w-20 items-center justify-center rounded-full border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
             >
               <Phone className="size-5" />
             </a>
             <a
-              href={emailLink ? `mailto:${emailLink.value}` : "#"}
-              onClick={(e) => { if (!emailLink) { e.preventDefault(); setVcardOpen(true); } }}
+              href={cleanEmail ? `mailto:${cleanEmail}` : "#"}
+              onClick={(e) => { if (!cleanEmail) { e.preventDefault(); setVcardOpen(true); } }}
               aria-label="Email"
               className="flex h-11 w-20 items-center justify-center rounded-full border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
             >
               <Mail className="size-5" />
             </a>
             <a
-              href={websiteLink ? (websiteLink.value.startsWith("http") ? websiteLink.value : `https://${websiteLink.value}`) : "#"}
-              target={websiteLink ? "_blank" : undefined}
-              rel={websiteLink ? "noreferrer noopener" : undefined}
-              onClick={(e) => { if (!websiteLink) { e.preventDefault(); handleShare(); } }}
+              href={cleanWebsite ?? "#"}
+              target={cleanWebsite ? "_blank" : undefined}
+              rel={cleanWebsite ? "noreferrer noopener" : undefined}
+              onClick={(e) => { if (!cleanWebsite) { e.preventDefault(); handleShare(); } }}
               aria-label="Website"
               className="flex h-11 w-20 items-center justify-center rounded-full border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
             >
@@ -419,7 +450,7 @@ function PublicProfilePage() {
               seen.add(l.type);
               return true;
             });
-            const hasAnyQuick = QUICK.some((t) => seen.has(t));
+            const hasAnyQuick = Boolean(cleanPhone || cleanEmail || cleanWebsite);
 
             if (tiles.length === 0) {
               return (
