@@ -5,7 +5,17 @@ import { makeRouteError, makeRouteNotFound } from "@/components/route-boundaries
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
   beforeLoad: async ({ location }) => {
-    const { data, error } = await supabase.auth.getUser();
+    const getUserWithTimeout = Promise.race([
+      supabase.auth.getUser(),
+      new Promise<{ data: { user: null }; error: Error }>((resolve) =>
+        setTimeout(() => resolve({ data: { user: null }, error: new Error("Auth timeout") }), 3500)
+      ),
+    ]);
+    const { data, error } = await getUserWithTimeout.catch((err) => ({
+      data: { user: null },
+      error: err instanceof Error ? err : new Error("Auth error"),
+    }));
+
     if (error || !data.user) {
       // Clear any stale/invalid session (e.g. deleted user JWT still in localStorage)
       // to avoid an infinite loop of 403 user_not_found requests.

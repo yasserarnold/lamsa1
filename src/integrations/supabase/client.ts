@@ -24,7 +24,13 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
     }
 
     headers.set('apikey', supabaseKey);
-    return fetch(input, { ...init, headers });
+
+    let signal = init?.signal;
+    if (!signal && typeof AbortSignal !== 'undefined' && 'timeout' in AbortSignal) {
+      signal = AbortSignal.timeout(8000);
+    }
+
+    return fetch(input, { ...init, headers, signal });
   };
 }
 
