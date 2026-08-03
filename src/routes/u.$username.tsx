@@ -166,7 +166,7 @@ function PublicProfilePage() {
   };
   const p = data.profile;
   const links: LinkRow[] = data.links;
-  const { t } = useLanguage();
+  const { t, lang, setLang } = useLanguage();
 
   const submit = useServerFn(submitLead);
   const [name, setName] = useState("");
@@ -333,6 +333,31 @@ function PublicProfilePage() {
               {(p.full_name || p.username || "?").charAt(0).toUpperCase()}
             </div>
           )}
+          {/* Language Switcher Pill */}
+          <div className="absolute top-3.5 right-3.5 z-20 flex items-center rounded-full bg-black/50 backdrop-blur-md p-1 border border-white/20 shadow-lg text-xs font-medium">
+            <button
+              onClick={() => setLang("ar")}
+              aria-label="عرض باللغة العربية"
+              className={`rounded-full px-2.5 py-0.5 transition-all ${
+                lang === "ar"
+                  ? "bg-white text-black font-bold shadow-xs"
+                  : "text-white/80 hover:text-white"
+              }`}
+            >
+              عربي
+            </button>
+            <button
+              onClick={() => setLang("en")}
+              aria-label="Switch to English"
+              className={`rounded-full px-2.5 py-0.5 transition-all ${
+                lang === "en"
+                  ? "bg-white text-black font-bold shadow-xs"
+                  : "text-white/80 hover:text-white"
+              }`}
+            >
+              EN
+            </button>
+          </div>
           {/* Subtle Overlays for Top Header */}
           <div className="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-black/50 via-black/20 to-transparent pointer-events-none" />
           <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-white dark:from-slate-900 via-white/80 dark:via-slate-900/80 to-transparent pointer-events-none" />
